@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"forum/internal/database"
 	"forum/internal/handlers"
 	"forum/internal/middleware"
@@ -180,4 +181,3 @@ func main() {
 		log.Printf("Starting HTTPS server with Let's Encrypt certificates...")
 		log.Fatal(httpsServer.ListenAndServeTLS("", ""))
 	}
-}

@@ -202,6 +202,8 @@ func GetSessionByUUID(uuid string) (*Session, error) {
 		return nil, err
 	}
 
+	
+
 	// On vérifie si la session n'est pas périmée
 	// C'est comme vérifier si le bracelet n'a pas dépassé sa date d'expiration
 	if session.ExpiresAt.Before(time.Now()) {

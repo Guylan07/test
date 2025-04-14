@@ -26,6 +26,14 @@ type OAuthConfig struct {
 	ProfileURL   string
 }
 
+// Structure pour recevoir le token OAuth
+type TokenResponse struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int    `json:"expires_in,omitempty"`
+	Scope       string `json:"scope,omitempty"`
+}
+
 var (
 	// Configuration pour Google OAuth
 	googleConfig = OAuthConfig{
@@ -105,14 +113,14 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	delete(oauthStates, state)
 	
 	// Échanger le code contre un token
-	tokenData := url.Values{}
-	tokenData.Set("code", code)
-	tokenData.Set("client_id", googleConfig.ClientID)
-	tokenData.Set("client_secret", googleConfig.ClientSecret)
-	tokenData.Set("redirect_uri", googleConfig.RedirectURI)
-	tokenData.Set("grant_type", "authorization_code")
+	formData := url.Values{}
+	formData.Set("code", code)
+	formData.Set("client_id", googleConfig.ClientID)
+	formData.Set("client_secret", googleConfig.ClientSecret)
+	formData.Set("redirect_uri", googleConfig.RedirectURI)
+	formData.Set("grant_type", "authorization_code")
 	
-	tokenResp, err := http.PostForm(googleConfig.TokenURL, tokenData)
+	tokenResp, err := http.PostForm(googleConfig.TokenURL, formData)
 	if err != nil {
 		http.Error(w, "Failed to get token", http.StatusInternalServerError)
 		log.Printf("Token exchange error: %v", err)
@@ -120,10 +128,7 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tokenResp.Body.Close()
 	
-	var tokenData struct {
-		AccessToken string `json:"access_token"`
-		TokenType   string `json:"token_type"`
-	}
+	var tokenData TokenResponse
 	
 	if err := json.NewDecoder(tokenResp.Body).Decode(&tokenData); err != nil {
 		http.Error(w, "Failed to parse token response", http.StatusInternalServerError)
@@ -227,13 +232,13 @@ func GitHubCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	delete(oauthStates, state)
 	
 	// Échanger le code contre un token
-	tokenData := url.Values{}
-	tokenData.Set("code", code)
-	tokenData.Set("client_id", githubConfig.ClientID)
-	tokenData.Set("client_secret", githubConfig.ClientSecret)
-	tokenData.Set("redirect_uri", githubConfig.RedirectURI)
+	formData := url.Values{}
+	formData.Set("code", code)
+	formData.Set("client_id", githubConfig.ClientID)
+	formData.Set("client_secret", githubConfig.ClientSecret)
+	formData.Set("redirect_uri", githubConfig.RedirectURI)
 	
-	tokenReq, _ := http.NewRequest("POST", githubConfig.TokenURL, strings.NewReader(tokenData.Encode()))
+	tokenReq, _ := http.NewRequest("POST", githubConfig.TokenURL, strings.NewReader(formData.Encode()))
 	tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	tokenReq.Header.Set("Accept", "application/json")
 	
@@ -246,12 +251,9 @@ func GitHubCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tokenResp.Body.Close()
 	
-	var tokenData struct {
-		AccessToken string `json:"access_token"`
-		TokenType   string `json:"token_type"`
-	}
+	var githubToken TokenResponse
 	
-	if err := json.NewDecoder(tokenResp.Body).Decode(&tokenData); err != nil {
+	if err := json.NewDecoder(tokenResp.Body).Decode(&githubToken); err != nil {
 		http.Error(w, "Failed to parse token response", http.StatusInternalServerError)
 		log.Printf("Token parsing error: %v", err)
 		return
@@ -259,7 +261,7 @@ func GitHubCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	
 	// Utiliser le token pour obtenir les informations de l'utilisateur
 	profileReq, _ := http.NewRequest("GET", githubConfig.ProfileURL, nil)
-	profileReq.Header.Add("Authorization", "token "+tokenData.AccessToken)
+	profileReq.Header.Add("Authorization", "token "+githubToken.AccessToken)
 	profileReq.Header.Add("Accept", "application/json")
 	
 	profileResp, err := client.Do(profileReq)
@@ -286,7 +288,7 @@ func GitHubCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	// Si l'email n'est pas disponible publiquement, on le récupère via l'API emails
 	if profileData.Email == "" {
 		emailReq, _ := http.NewRequest("GET", "https://api.github.com/user/emails", nil)
-		emailReq.Header.Add("Authorization", "token "+tokenData.AccessToken)
+		emailReq.Header.Add("Authorization", "token "+githubToken.AccessToken)
 		emailReq.Header.Add("Accept", "application/json")
 		
 		emailResp, err := client.Do(emailReq)
@@ -353,7 +355,6 @@ func GitHubCallbackHandler(w http.ResponseWriter, r *http.Request) {
 // Traiter l'authentification OAuth
 func processOAuthUser(email, name, oauthID string) (*models.User, error) {
 	// Vérifier si l'utilisateur existe déjà avec cet ID OAuth
-	var user models.User
 	var userID int
 	
 	err := database.DB.QueryRow(
