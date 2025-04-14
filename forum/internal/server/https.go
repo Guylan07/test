@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"golang.org/x/crypto/acme/autocert"
+	"os/exec"
 )
 
 // Configuration pour le serveur HTTPS
@@ -80,24 +81,36 @@ func ConfigureHTTPS(handler http.Handler, config HTTPSConfig) *http.Server {
 
 // GenerateSelfSignedCert génère un certificat auto-signé pour le développement
 func GenerateSelfSignedCert(certPath string) (string, string, error) {
-	certFile := filepath.Join(certPath, "localhost.crt")
-	keyFile := filepath.Join(certPath, "localhost.key")
-	
-	// Vérifier si les fichiers existent déjà
-	// Si non, les créer avec openssl
-	// Ici nous nous attendons à ce que les certificats soient générés manuellement
-	// ou à l'aide d'un script externe pour simplifier ce code
-	
-	log.Println("Using self-signed certificate:", certFile)
-	return certFile, keyFile, nil
-}
-
-// redirectToHTTPS redirige toutes les requêtes HTTP vers HTTPS
-func redirectToHTTPS(w http.ResponseWriter, r *http.Request) {
-	target := "https://" + r.Host + r.URL.Path
-	if len(r.URL.RawQuery) > 0 {
-		target += "?" + r.URL.RawQuery
-	}
-	
-	http.Redirect(w, r, target, http.StatusMovedPermanently)
+    certFile := filepath.Join(certPath, "localhost.crt")
+    keyFile := filepath.Join(certPath, "localhost.key")
+    
+    // Vérifier si les fichiers existent déjà
+    _, errCert := os.Stat(certFile)
+    _, errKey := os.Stat(keyFile)
+    
+    // Si les fichiers existent déjà, les utiliser
+    if errCert == nil && errKey == nil {
+        log.Println("Using existing self-signed certificate:", certFile)
+        return certFile, keyFile, nil
+    }
+    
+    // Créer la commande OpenSSL pour générer le certificat
+    cmd := exec.Command(
+        "openssl", "req", "-x509", 
+        "-newkey", "rsa:4096", 
+        "-keyout", keyFile, 
+        "-out", certFile, 
+        "-days", "365", 
+        "-nodes", 
+        "-subj", "/CN=localhost",
+    )
+    
+    output, err := cmd.CombinedOutput()
+    if err != nil {
+        log.Printf("Failed to generate self-signed certificate: %v\nOutput: %s", err, output)
+        return "", "", err
+    }
+    
+    log.Println("Generated new self-signed certificate:", certFile)
+    return certFile, keyFile, nil
 }

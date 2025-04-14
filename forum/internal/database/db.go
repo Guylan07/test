@@ -212,3 +212,15 @@ func CloseDB() error {
 	// Si la base de données n'est pas ouverte, il n'y a rien à faire
 	return nil
 }
+
+// Dans la création de la table users:
+usersTable := `
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT DEFAULT 'user',
+    oauth_id TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`

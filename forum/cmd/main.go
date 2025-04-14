@@ -18,6 +18,17 @@ import (
 
 // Ajoute des fonctions personnalisées aux templates
 func init() {
+
+    if os.Getenv("GOOGLE_CLIENT_ID") == "" {
+        os.Setenv("GOOGLE_CLIENT_ID", "fake-client-id")
+        os.Setenv("GOOGLE_CLIENT_SECRET", "fake-client-secret")
+    }
+    
+    if os.Getenv("GITHUB_CLIENT_ID") == "" {
+        os.Setenv("GITHUB_CLIENT_ID", "fake-client-id")
+        os.Setenv("GITHUB_CLIENT_SECRET", "fake-client-secret")
+    }
+}
 	// Crée un nouveau template avec les fonctions nécessaires pour la pagination
 	// Ces fonctions seront disponibles dans tous les templates
 	template.New("").Funcs(template.FuncMap{
