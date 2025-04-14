@@ -1,0 +1,90 @@
+{{define "content"}}
+    <h2>Modération - Posts en attente</h2>
+    
+    <div class="moderation-info">
+        <p>En tant que modérateur, vous avez la responsabilité d'examiner les posts pour s'assurer qu'ils respectent les règles de la communauté.</p>
+        <p>Veuillez examiner attentivement chaque post et décider s'il doit être approuvé ou rejeté.</p>
+    </div>
+    
+    <div class="moderation-rules">
+        <h3>Règles de modération</h3>
+        <ul>
+            <li><strong>Contenu inapproprié:</strong> Tout contenu obscène, pornographique, violent ou haineux doit être rejeté.</li>
+            <li><strong>Spam:</strong> Les posts publicitaires non sollicités doivent être rejetés.</li>
+            <li><strong>Harcèlement:</strong> Tout contenu visant à harceler ou intimider d'autres utilisateurs doit être rejeté.</li>
+            <li><strong>Information personnelle:</strong> Les posts contenant des informations personnelles identifiables doivent être rejetés.</li>
+            <li><strong>Hors sujet:</strong> Les posts clairement sans rapport avec les thématiques du forum peuvent être rejetés.</li>
+        </ul>
+    </div>
+    
+    <div class="pending-posts">
+        {{if .PendingPosts}}
+            {{range .PendingPosts}}
+                <div class="pending-post">
+                    <div class="post-header">
+                        <h3>{{.Title}}</h3>
+                        <div class="post-meta">
+                            <span>Par: <strong>{{.Username}}</strong></span>
+                            <span>Le: {{.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
+                        </div>
+                        <div class="post-categories">
+                            {{range .Categories}}
+                                <span class="category-tag">{{.Name}}</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    
+                    <div class="post-content">
+                        {{.Content}}
+                    </div>
+                    
+                    <div class="moderation-actions">
+                        <form action="/mod/approve/{{.ID}}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-success">Approuver</button>
+                        </form>
+                        
+                        <button class="btn btn-danger reject-toggle" data-post-id="{{.ID}}">Rejeter</button>
+                        
+                        <form id="reject-form-{{.ID}}" action="/mod/reject/{{.ID}}" method="post" class="reject-form" style="display: none;">
+                            <div class="form-group">
+                                <label for="reason-{{.ID}}">Raison du rejet:</label>
+                                <textarea id="reason-{{.ID}}" name="reason" rows="3" required></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-danger">Confirmer le rejet</button>
+                                <button type="button" class="btn cancel-reject" data-post-id="{{.ID}}">Annuler</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {{end}}
+        {{else}}
+            <p class="no-posts">Aucun post en attente de modération.</p>
+        {{end}}
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gérer le clic sur le bouton "Rejeter"
+            document.querySelectorAll('.reject-toggle').forEach(button => {
+                button.addEventListener('click', function() {
+                    const postId = this.dataset.postId;
+                    const form = document.getElementById('reject-form-' + postId);
+                    form.style.display = 'block';
+                    this.style.display = 'none';
+                });
+            });
+            
+            // Gérer le clic sur le bouton "Annuler"
+            document.querySelectorAll('.cancel-reject').forEach(button => {
+                button.addEventListener('click', function() {
+                    const postId = this.dataset.postId;
+                    const form = document.getElementById('reject-form-' + postId);
+                    const rejectButton = document.querySelector('.reject-toggle[data-post-id="' + postId + '"]');
+                    form.style.display = 'none';
+                    rejectButton.style.display = 'inline-block';
+                });
+            });
+        });
+    </script>
+{{end}}

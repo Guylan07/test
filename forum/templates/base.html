@@ -1,0 +1,43 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{if .PageTitle}}{{.PageTitle}} - {{end}}Forum</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <h1 class="site-title"><a href="/">Forum</a></h1>
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="/">Home</a></li>
+                        {{if .CurrentUser}}
+                            <li><a href="/post/create">Create Post</a></li>
+                            <li><a href="/profile">Profile</a></li>
+                            <li><a href="/logout">Logout ({{.CurrentUser.Username}})</a></li>
+                        {{else}}
+                            <li><a href="/login">Login</a></li>
+                            <li><a href="/register">Register</a></li>
+                        {{end}}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        {{template "content" .}}
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Forum Project. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
+{{end}}

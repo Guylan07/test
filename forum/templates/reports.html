@@ -1,0 +1,126 @@
+{{define "content"}}
+    <h2>Administration - Gestion des signalements</h2>
+    
+    <div class="admin-info">
+        <p>En tant qu'administrateur, vous avez la responsabilité de traiter les signalements soumis par les modérateurs et les utilisateurs.</p>
+        <p>Examinez attentivement chaque signalement et décidez s'il doit être approuvé (suppression du contenu) ou rejeté.</p>
+    </div>
+    
+    <div class="reports-list">
+        {{if .Reports}}
+            {{range .Reports}}
+                <div class="report-card">
+                    <div class="report-header">
+                        <h3>Signalement #{{.ID}}</h3>
+                        <div class="report-meta">
+                            <span>Type: <strong>{{if eq .Type "post"}}Post{{else if eq .Type "comment"}}Commentaire{{else if eq .Type "moderator_request"}}Demande de modérateur{{else}}{{.Type}}{{end}}</strong></span>
+                            <span>ID du contenu: <strong>{{.ContentID}}</strong></span>
+                            <span>Signalé par: <strong>{{.ReporterName}}</strong></span>
+                            <span>Date: <strong>{{.CreatedAt.Format "02/01/2006 à 15:04"}}</strong></span>
+                        </div>
+                    </div>
+                    
+                    <div class="report-content">
+                        <h4>Raison du signalement:</h4>
+                        <div class="reason-box">
+                            {{.Reason}}
+                        </div>
+                        
+                        {{if eq .Type "post" }}
+                            <div class="content-preview">
+                                <a href="/post/{{.ContentID}}" target="_blank" class="btn btn-secondary">Voir le post concerné</a>
+                            </div>
+                        {{else if eq .Type "comment"}}
+                            <div class="content-preview">
+                                <a href="/post/?comment={{.ContentID}}" target="_blank" class="btn btn-secondary">Voir le commentaire concerné</a>
+                            </div>
+                        {{else if eq .Type "moderator_request"}}
+                            <div class="content-preview">
+                                <a href="/admin/users" target="_blank" class="btn btn-secondary">Voir la liste des utilisateurs</a>
+                            </div>
+                        {{end}}
+                    </div>
+                    
+                    <div class="report-actions">
+                        <button class="btn btn-success approve-toggle" data-report-id="{{.ID}}">Approuver</button>
+                        <button class="btn btn-danger reject-toggle" data-report-id="{{.ID}}">Rejeter</button>
+                        
+                        <form id="approve-form-{{.ID}}" action="/admin/report/handle/{{.ID}}" method="post" class="report-form" style="display: none;">
+                            <input type="hidden" name="action" value="approve">
+                            <div class="form-group">
+                                <label for="approve-response-{{.ID}}">Commentaire d'approbation (facultatif):</label>
+                                <textarea id="approve-response-{{.ID}}" name="response" rows="3"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-success">Confirmer l'approbation</button>
+                                <button type="button" class="btn cancel-action" data-report-id="{{.ID}}" data-form-type="approve">Annuler</button>
+                            </div>
+                        </form>
+                        
+                        <form id="reject-form-{{.ID}}" action="/admin/report/handle/{{.ID}}" method="post" class="report-form" style="display: none;">
+                            <input type="hidden" name="action" value="reject">
+                            <div class="form-group">
+                                <label for="reject-response-{{.ID}}">Raison du rejet:</label>
+                                <textarea id="reject-response-{{.ID}}" name="response" rows="3" required></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-danger">Confirmer le rejet</button>
+                                <button type="button" class="btn cancel-action" data-report-id="{{.ID}}" data-form-type="reject">Annuler</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {{end}}
+        {{else}}
+            <p class="no-reports">Aucun signalement en attente.</p>
+        {{end}}
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gérer le clic sur le bouton "Approuver"
+            document.querySelectorAll('.approve-toggle').forEach(button => {
+                button.addEventListener('click', function() {
+                    const reportId = this.dataset.reportId;
+                    const form = document.getElementById('approve-form-' + reportId);
+                    
+                    // Masquer tous les formulaires
+                    document.querySelectorAll('.report-form').forEach(f => {
+                        f.style.display = 'none';
+                    });
+                    
+                    // Afficher le formulaire d'approbation
+                    form.style.display = 'block';
+                });
+            });
+            
+            // Gérer le clic sur le bouton "Rejeter"
+            document.querySelectorAll('.reject-toggle').forEach(button => {
+                button.addEventListener('click', function() {
+                    const reportId = this.dataset.reportId;
+                    const form = document.getElementById('reject-form-' + reportId);
+                    
+                    // Masquer tous les formulaires
+                    document.querySelectorAll('.report-form').forEach(f => {
+                        f.style.display = 'none';
+                    });
+                    
+                    // Afficher le formulaire de rejet
+                    form.style.display = 'block';
+                });
+            });
+            
+            // Gérer le clic sur le bouton "Annuler"
+            document.querySelectorAll('.cancel-action').forEach(button => {
+                button.addEventListener('click', function() {
+                    const reportId = this.dataset.reportId;
+                    const formType = this.dataset.formType;
+                    const form = document.getElementById(formType + '-form-' + reportId);
+                    
+                    // Masquer le formulaire
+                    form.style.display = 'none';
+                });
+            });
+        });
+    </script>
+{{end}}

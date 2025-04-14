@@ -1,0 +1,128 @@
+{{define "content"}}
+    <h2>Administration - Gestion des utilisateurs</h2>
+    
+    <div class="admin-info">
+        <p>En tant qu'administrateur, vous pouvez gérer les rôles des utilisateurs sur le forum.</p>
+        <p>Utilisez cette page pour attribuer ou révoquer les droits de modérateur ou d'administrateur.</p>
+    </div>
+    
+    <div class="users-list">
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom d'utilisateur</th>
+                    <th>Email</th>
+                    <th>Rôle actuel</th>
+                    <th>Date d'inscription</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{if .Users}}
+                    {{range .Users}}
+                        <tr>
+                            <td>{{.ID}}</td>
+                            <td>{{.Username}}</td>
+                            <td>{{.Email}}</td>
+                            <td>
+                                <span class="role-badge role-{{.Role}}">
+                                    {{if eq .Role "admin"}}Administrateur
+                                    {{else if eq .Role "moderator"}}Modérateur
+                                    {{else}}Utilisateur{{end}}
+                                </span>
+                            </td>
+                            <td>{{.CreatedAt.Format "02/01/2006"}}</td>
+                            <td>
+                                <button class="btn-link change-role-toggle" data-user-id="{{.ID}}" data-current-role="{{.Role}}">
+                                    Modifier le rôle
+                                </button>
+                                
+                                <form id="role-form-{{.ID}}" action="/admin/user/role/{{.ID}}" method="post" class="role-form" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="role-{{.ID}}">Nouveau rôle:</label>
+                                        <select id="role-{{.ID}}" name="role" class="role-select">
+                                            <option value="user" {{if eq .Role "user"}}selected{{end}}>Utilisateur</option>
+                                            <option value="moderator" {{if eq .Role "moderator"}}selected{{end}}>Modérateur</option>
+                                            <option value="admin" {{if eq .Role "admin"}}selected{{end}}>Administrateur</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-sm">Sauvegarder</button>
+                                        <button type="button" class="btn btn-sm cancel-role" data-user-id="{{.ID}}">Annuler</button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                    {{end}}
+                {{else}}
+                    <tr>
+                        <td colspan="6" class="no-users">Aucun utilisateur trouvé.</td>
+                    </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gérer le clic sur le bouton "Modifier le rôle"
+            document.querySelectorAll('.change-role-toggle').forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = this.dataset.userId;
+                    const form = document.getElementById('role-form-' + userId);
+                    
+                    // Basculer l'affichage du formulaire
+                    if (form.style.display === 'none') {
+                        form.style.display = 'block';
+                        this.style.display = 'none';
+                    } else {
+                        form.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Gérer le clic sur le bouton "Annuler"
+            document.querySelectorAll('.cancel-role').forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = this.dataset.userId;
+                    const form = document.getElementById('role-form-' + userId);
+                    const toggleButton = document.querySelector('.change-role-toggle[data-user-id="' + userId + '"]');
+                    
+                    form.style.display = 'none';
+                    toggleButton.style.display = 'inline-block';
+                    
+                    // Réinitialiser la sélection au rôle actuel
+                    const currentRole = toggleButton.dataset.currentRole;
+                    const select = form.querySelector('select');
+                    select.value = currentRole;
+                });
+            });
+            
+            // Avertissement lors de la rétrogradation d'un administrateur
+            document.querySelectorAll('.role-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const select = this.querySelector('select');
+                    const userId = this.id.replace('role-form-', '');
+                    const currentRole = document.querySelector('.change-role-toggle[data-user-id="' + userId + '"]').dataset.currentRole;
+                    
+                    // Si on tente de rétrograder un administrateur et que l'utilisateur est l'administrateur actuel
+                    if (currentRole === 'admin' && select.value !== 'admin' && userId === '{{.CurrentUser.ID}}') {
+                        if (!confirm('Attention ! Vous êtes sur le point de rétrograder votre propre compte administrateur. Êtes-vous certain de vouloir continuer ?')) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }
+                    
+                    // Si on tente de promouvoir au rang d'administrateur
+                    if (currentRole !== 'admin' && select.value === 'admin') {
+                        if (!confirm('Attention ! Vous êtes sur le point de donner des droits d\'administrateur complets à cet utilisateur. Êtes-vous certain de vouloir continuer ?')) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+{{end}}

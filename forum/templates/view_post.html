@@ -1,0 +1,151 @@
+{{define "content"}}
+    <div class="post-detail">
+        <h2 class="post-title">{{.Post.Title}}</h2>
+        
+        <div class="post-meta">
+            <span>Posted by <a href="/?user={{.Post.UserID}}">{{.Post.Username}}</a></span>
+            <span>on {{.Post.CreatedAt.Format "Jan 02, 2006 at 15:04"}}</span>
+            {{if .Post.UpdatedAt.After .Post.CreatedAt}}
+                <span>(edited on {{.Post.UpdatedAt.Format "Jan 02, 2006 at 15:04"}})</span>
+            {{end}}
+        </div>
+        
+        <div class="post-categories">
+            {{range .Post.Categories}}
+                <a href="/?category={{.ID}}" class="category-tag">{{.Name}}</a>
+            {{end}}
+        </div>
+        
+        <div class="post-content">
+            {{.Post.Content}}
+        </div>
+        
+        {{if .CanEdit}}
+            <div class="post-actions">
+                <a href="/post/edit/{{.Post.ID}}" class="btn">Edit</a>
+                <a href="/post/delete/{{.Post.ID}}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this post?')">Delete</a>
+            </div>
+        {{end}}
+        
+        <div class="post-reactions">
+            <form action="/post/react" method="post" class="reaction-form">
+                <input type="hidden" name="post_id" value="{{.Post.ID}}">
+                
+                <button type="submit" name="reaction_type" value="like" class="reaction-btn {{if eq .Post.UserReaction "like"}}active{{end}}">
+                    👍 Like ({{.Post.Likes}})
+                </button>
+                
+                <button type="submit" name="reaction_type" value="dislike" class="reaction-btn {{if eq .Post.UserReaction "dislike"}}active{{end}}">
+                    👎 Dislike ({{.Post.Dislikes}})
+                </button>
+                
+                {{if .Post.UserReaction}}
+                    <button type="submit" name="reaction_type" value="" class="reaction-btn clear">
+                        ❌ Clear reaction
+                    </button>
+                {{end}}
+            </form>
+        </div>
+    </div>
+    
+    <div class="comments-section">
+        <h3>Comments ({{len .Comments}})</h3>
+        
+        {{if .CurrentUser}}
+            <form action="/comment/create" method="post" class="comment-form">
+                <input type="hidden" name="post_id" value="{{.Post.ID}}">
+                <div class="form-group">
+                    <label for="content">Add a comment:</label>
+                    <textarea id="content" name="content" rows="3" required></textarea>
+                </div>
+                <button type="submit">Post Comment</button>
+            </form>
+        {{else}}
+            <p><a href="/login">Log in</a> to leave a comment.</p>
+        {{end}}
+        
+        <div class="comments-list">
+            {{if .Comments}}
+                {{range .Comments}}
+                    <div class="comment" id="comment-{{.ID}}">
+                        <div class="comment-meta">
+                            <strong>{{.Username}}</strong>
+                            <span>on {{.CreatedAt.Format "Jan 02, 2006 at 15:04"}}</span>
+                            {{if .UpdatedAt.After .CreatedAt}}
+                                <span>(edited)</span>
+                            {{end}}
+                        </div>
+                        
+                        <div class="comment-content">
+                            {{.Content}}
+                        </div>
+                        
+                        <div class="comment-actions">
+                            {{if and $.CurrentUser (or (eq $.CurrentUser.ID .UserID) (eq $.CurrentUser.Role "admin"))}}
+                                <button class="btn-link edit-comment-toggle" data-comment-id="{{.ID}}">Edit</button>
+                                <a href="/comment/delete/{{.ID}}?post_id={{.PostID}}" class="btn-link text-danger" onclick="return confirm('Are you sure you want to delete this comment?')">Delete</a>
+                            {{end}}
+                            
+                            <div class="comment-reactions">
+                                <form action="/comment/react" method="post" class="reaction-form inline">
+                                    <input type="hidden" name="comment_id" value="{{.ID}}">
+                                    <input type="hidden" name="post_id" value="{{.PostID}}">
+                                    
+                                    <button type="submit" name="reaction_type" value="like" class="reaction-btn-small {{if eq .UserReaction "like"}}active{{end}}">
+                                        👍 {{.Likes}}
+                                    </button>
+                                    
+                                    <button type="submit" name="reaction_type" value="dislike" class="reaction-btn-small {{if eq .UserReaction "dislike"}}active{{end}}">
+                                        👎 {{.Dislikes}}
+                                    </button>
+                                    
+                                    {{if .UserReaction}}
+                                        <button type="submit" name="reaction_type" value="" class="reaction-btn-small clear">
+                                            ❌
+                                        </button>
+                                    {{end}}
+                                </form>
+                            </div>
+                        </div>
+                        
+                        {{if and $.CurrentUser (or (eq $.CurrentUser.ID .UserID) (eq $.CurrentUser.Role "admin"))}}
+                            <form action="/comment/edit" method="post" class="comment-edit-form" style="display: none;" id="edit-form-{{.ID}}">
+                                <input type="hidden" name="comment_id" value="{{.ID}}">
+                                <input type="hidden" name="post_id" value="{{.PostID}}">
+                                <div class="form-group">
+                                    <textarea name="content" rows="3" required>{{.Content}}</textarea>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn">Save</button>
+                                    <button type="button" class="btn cancel-edit" data-comment-id="{{.ID}}">Cancel</button>
+                                </div>
+                            </form>
+                        {{end}}
+                    </div>
+                {{end}}
+            {{else}}
+                <p>No comments yet.</p>
+            {{end}}
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.edit-comment-toggle').forEach(button => {
+                button.addEventListener('click', function() {
+                    const commentId = this.dataset.commentId;
+                    const form = document.getElementById('edit-form-' + commentId);
+                    form.style.display = 'block';
+                });
+            });
+            
+            document.querySelectorAll('.cancel-edit').forEach(button => {
+                button.addEventListener('click', function() {
+                    const commentId = this.dataset.commentId;
+                    const form = document.getElementById('edit-form-' + commentId);
+                    form.style.display = 'none';
+                });
+            });
+        });
+    </script>
+{{end}}

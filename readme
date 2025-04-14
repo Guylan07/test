@@ -1,0 +1,73 @@
+**Fonctionnalités de base:**
+- Création d'un forum permettant la communication entre utilisateurs
+- Système d'inscription et d'authentification des utilisateurs
+- Création de posts et commentaires par les utilisateurs enregistrés
+- Association de catégories aux posts
+- Système de likes/dislikes pour les posts et commentaires
+- Filtrage des posts par catégories, par création ou par likes
+
+**Sécurité:**
+- Implémentation du protocole HTTPS avec génération de certificats SSL
+- Limitation de débit (Rate Limiting) pour prévenir les abus
+- Chiffrement des mots de passe utilisateurs (avec bcrypt)
+- Gestion sécurisée des sessions et cookies avec identifiants uniques (UUID)
+- Protection contre les attaques web courantes
+
+**Système de modération:**
+- Différents niveaux d'accès: invités, utilisateurs, modérateurs, administrateurs
+- Système de modération permettant l'approbation des messages
+- Filtrage du contenu inapproprié (irrelevant, obscène, illégal, insultant)
+
+**Fonctionnalités avancées:**
+- Notifications pour les likes et commentaires
+- Page d'activité personnelle de l'utilisateur
+- Section pour éditer/supprimer les posts et commentaires
+- Téléchargement d'images (JPEG, PNG, GIF) limité à 20 Mo
+- Authentification via Google et GitHub
+
+**Exigences techniques:**
+- Backend en Go avec SQLite pour la base de données
+- Utilisation de Docker pour la conteneurisation
+- Gestion des erreurs et des statuts HTTP
+- Code respectant les bonnes pratiques
+- Tests unitaires recommandés
+- Uniquement les packages autorisés: standard Go, sqlite3, bcrypt, UUID, autocert
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+**Core Features:**
+- Creation of a forum allowing communication between users
+- User registration and authentication system
+- Creation of posts and comments by registered users
+- Association of categories with posts
+- Like/dislike system for posts and comments
+- Filtering posts by categories, by creation, or by likes
+
+**Security:**
+- Implementation of HTTPS protocol with SSL certificate generation
+- Rate limiting to prevent abuse
+- Password encryption (using bcrypt)
+- Secure session and cookie management with unique identifiers (UUID)
+- Protection against common web attacks
+
+**Moderation System:**
+- Different access levels: guests, users, moderators, administrators
+- Moderation system allowing message approval
+- Filtering inappropriate content (irrelevant, obscene, illegal, insulting)
+
+**Advanced Features:**
+- Notifications for likes and comments
+- User activity page
+- Section for editing/deleting posts and comments
+- Image upload capability (JPEG, PNG, GIF) limited to 20 MB
+- Authentication via Google and GitHub
+
+**Technical Requirements:**
+- Backend in Go with SQLite for the database
+- Docker for containerization
+- Error handling and HTTP status management
+- Code following best practices
+- Recommended unit testing
+- Only allowed packages: standard Go, sqlite3, bcrypt, UUID, autocert

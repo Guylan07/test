@@ -1,0 +1,83 @@
+{{define "content"}}
+    <h2>Posts récents</h2>
+    
+    <div class="filters">
+        <form action="/" method="get" class="filter-form">
+            <div class="filter-group">
+                <label for="category">Catégorie:</label>
+                <select name="category" id="category" onchange="this.form.submit()">
+                    <option value="">Toutes les catégories</option>
+                    {{range .Categories}}
+                        <option value="{{.ID}}" {{if eq $.CategoryID .ID}}selected{{end}}>{{.Name}}</option>
+                    {{end}}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="sort">Trier par:</label>
+                <select name="sort" id="sort" onchange="this.form.submit()">
+                    <option value="date_desc" {{if eq .SortBy "date_desc"}}selected{{end}}>Plus récents</option>
+                    <option value="date_asc" {{if eq .SortBy "date_asc"}}selected{{end}}>Plus anciens</option>
+                    <option value="likes" {{if eq .SortBy "likes"}}selected{{end}}>Plus aimés</option>
+                </select>
+            </div>
+            
+            {{if .CategoryID}}
+                <input type="hidden" name="category" value="{{.CategoryID}}">
+            {{end}}
+            {{if .UserID}}
+                <input type="hidden" name="user" value="{{.UserID}}">
+            {{end}}
+        </form>
+    </div>
+    
+    <div class="posts-list">
+        {{if .Posts}}
+            {{range .Posts}}
+                <div class="post-card">
+                    <h3 class="post-title"><a href="/post/{{.ID}}">{{.Title}}</a></h3>
+                    
+                    <div class="post-meta">
+                        <span>Posté par <a href="/?user={{.UserID}}">{{.Username}}</a></span>
+                        <span>le {{.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
+                    </div>
+                    
+                    <div class="post-categories">
+                        {{range .Categories}}
+                            <a href="/?category={{.ID}}" class="category-tag">{{.Name}}</a>
+                        {{end}}
+                    </div>
+                    
+                    <div class="post-stats">
+                        <span>👍 {{.Likes}}</span>
+                        <span>👎 {{.Dislikes}}</span>
+                    </div>
+                </div>
+            {{end}}
+            
+            {{if gt .TotalPages 1}}
+                <div class="pagination">
+                    {{if gt .CurrentPage 1}}
+                        <a href="/?page={{subtract .CurrentPage 1}}{{if .CategoryID}}&category={{.CategoryID}}{{end}}{{if .UserID}}&user={{.UserID}}{{end}}{{if .SortBy}}&sort={{.SortBy}}{{end}}" class="page-link">&laquo; Précédent</a>
+                    {{end}}
+                    
+                    {{$current := .CurrentPage}}
+                    {{$total := .TotalPages}}
+                    {{range $i := sequence 1 .TotalPages}}
+                        {{if eq $i $current}}
+                            <span class="page-link active">{{$i}}</span>
+                        {{else}}
+                            <a href="/?page={{$i}}{{if $.CategoryID}}&category={{$.CategoryID}}{{end}}{{if $.UserID}}&user={{$.UserID}}{{end}}{{if $.SortBy}}&sort={{$.SortBy}}{{end}}" class="page-link">{{$i}}</a>
+                        {{end}}
+                    {{end}}
+                    
+                    {{if lt .CurrentPage .TotalPages}}
+                        <a href="/?page={{add .CurrentPage 1}}{{if .CategoryID}}&category={{.CategoryID}}{{end}}{{if .UserID}}&user={{.UserID}}{{end}}{{if .SortBy}}&sort={{.SortBy}}{{end}}" class="page-link">Suivant &raquo;</a>
+                    {{end}}
+                </div>
+            {{end}}
+        {{else}}
+            <p class="no-posts">Aucun post trouvé.</p>
+        {{end}}
+    </div>
+{{end}}
