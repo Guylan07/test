@@ -18,10 +18,6 @@
         
         <div class="post-content">
             {{.Post.Content}}
-        </div>
-        
-        <div class="post-content">
-            {{.Post.Content}}
             
             {{if .PostImage}}
             <div class="post-image">
@@ -29,6 +25,7 @@
             </div>
             {{end}}
         </div>
+        
         {{if .CanEdit}}
             <div class="post-actions">
                 <a href="/post/edit/{{.Post.ID}}" class="btn">Edit</a>
