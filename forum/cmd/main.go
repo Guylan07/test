@@ -12,13 +12,12 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 )
 
-// Ajoute des fonctions personnalisées aux templates
+// Ajoute des fonctions personnalisées aux templates et configure les variables d'environnement
 func init() {
-
+    // Configuration des variables d'environnement pour OAuth
     if os.Getenv("GOOGLE_CLIENT_ID") == "" {
         os.Setenv("GOOGLE_CLIENT_ID", "fake-client-id")
         os.Setenv("GOOGLE_CLIENT_SECRET", "fake-client-secret")
@@ -28,24 +27,24 @@ func init() {
         os.Setenv("GITHUB_CLIENT_ID", "fake-client-id")
         os.Setenv("GITHUB_CLIENT_SECRET", "fake-client-secret")
     }
-}
-	// Crée un nouveau template avec les fonctions nécessaires pour la pagination
-	// Ces fonctions seront disponibles dans tous les templates
-	template.New("").Funcs(template.FuncMap{
-		"add": func(a, b int) int {
-			return a + b
-		},
-		"subtract": func(a, b int) int {
-			return a - b
-		},
-		"sequence": func(start, end int) []int {
-			var result []int
-			for i := start; i <= end; i++ {
-				result = append(result, i)
-			}
-			return result
-		},
-	})
+    
+    // Crée un nouveau template avec les fonctions nécessaires pour la pagination
+    // Ces fonctions seront disponibles dans tous les templates
+    template.New("").Funcs(template.FuncMap{
+        "add": func(a, b int) int {
+            return a + b
+        },
+        "subtract": func(a, b int) int {
+            return a - b
+        },
+        "sequence": func(start, end int) []int {
+            var result []int
+            for i := start; i <= end; i++ {
+                result = append(result, i)
+            }
+            return result
+        },
+    })
 }
 
 func main() {
@@ -192,3 +191,4 @@ func main() {
 		log.Printf("Starting HTTPS server with Let's Encrypt certificates...")
 		log.Fatal(httpsServer.ListenAndServeTLS("", ""))
 	}
+}

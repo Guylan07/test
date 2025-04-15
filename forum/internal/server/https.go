@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"golang.org/x/crypto/acme/autocert"
 	"os/exec"
@@ -77,6 +78,15 @@ func ConfigureHTTPS(handler http.Handler, config HTTPSConfig) *http.Server {
 	}
 
 	return server
+}
+
+// redirectToHTTPS redirige toutes les requêtes HTTP vers HTTPS
+func redirectToHTTPS(w http.ResponseWriter, r *http.Request) {
+	target := "https://" + r.Host + r.URL.Path
+	if len(r.URL.RawQuery) > 0 {
+		target += "?" + r.URL.RawQuery
+	}
+	http.Redirect(w, r, target, http.StatusMovedPermanently)
 }
 
 // GenerateSelfSignedCert génère un certificat auto-signé pour le développement

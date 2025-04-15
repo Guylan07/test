@@ -1,16 +1,16 @@
 package database
+
 import (
 	"database/sql"
 	"log"
 	"os"
 	_ "github.com/mattn/go-sqlite3"
 )
+
 // Cette variable DB est accessible dans tout le programme pour interagir avec la base de données
-// C'est comme un canal de communication ouvert avec notre fichier de base de données
 var DB *sql.DB
 
 // La fonction InitDB prépare notre base de données pour qu'on puisse l'utiliser
-// Elle prend le chemin du fichier où notre base de données sera stockée
 func InitDB(filepath string) error {
 	// On vérifie d'abord si le fichier de base de données existe déjà sur l'ordinateur
 	_, err := os.Stat(filepath)
@@ -25,7 +25,6 @@ func InitDB(filepath string) error {
 	}
 	
 	// On ouvre la connexion avec notre base de données SQLite
-	// C'est comme ouvrir le cahier pour pouvoir écrire dedans
 	db, err := sql.Open("sqlite3", filepath)
 	if err != nil {
 		// Si on n'arrive pas à ouvrir la base de données, on signale l'erreur
@@ -34,7 +33,6 @@ func InitDB(filepath string) error {
 	DB = db
 	
 	// On crée les tableaux dans notre base de données si ils n'existent pas encore
-	// C'est comme préparer les pages de notre cahier avec des colonnes et des titres
 	err = createTables()
 	if err != nil {
 		// Si on n'arrive pas à créer les tableaux, on signale l'erreur
@@ -47,7 +45,6 @@ func InitDB(filepath string) error {
 }
 
 // La fonction createTables crée les structures nécessaires dans notre base de données
-// C'est comme préparer différentes sections dans notre cahier
 func createTables() error {
 	// On crée un tableau pour stocker les informations des utilisateurs
 	// Chaque ligne du tableau représentera un utilisateur avec ses informations
@@ -58,6 +55,7 @@ func createTables() error {
 		username TEXT UNIQUE NOT NULL,
 		password TEXT NOT NULL,
 		role TEXT DEFAULT 'user',
+		oauth_id TEXT,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);`
 	_, err := DB.Exec(usersTable)
@@ -67,7 +65,6 @@ func createTables() error {
 	}
 	
 	// On crée un tableau pour stocker les sessions de connexion
-	// Une session représente une période pendant laquelle un utilisateur est connecté
 	sessionsTable := `
 	CREATE TABLE IF NOT EXISTS sessions (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,7 +81,6 @@ func createTables() error {
 	}
 	
 	// On crée un tableau pour stocker les catégories de posts
-	// C'est comme créer une section spéciale dans notre cahier pour lister tous les thèmes possibles des discussions
 	categoriesTable := `
 	CREATE TABLE IF NOT EXISTS categories (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,7 +94,6 @@ func createTables() error {
 	}
 
 	// On crée un tableau pour stocker les posts
-	// C'est comme préparer des pages où chaque utilisateur pourra écrire ses messages principaux
 	postsTable := `
 	CREATE TABLE IF NOT EXISTS posts (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -116,7 +111,6 @@ func createTables() error {
 	}
 
 	// On crée un tableau pour associer des catégories aux posts
-	// C'est comme créer une liste qui indique dans quel rayon de bibliothèque ranger chaque livre
 	postCategoriesTable := `
 	CREATE TABLE IF NOT EXISTS post_categories (
 		post_id INTEGER NOT NULL,
@@ -132,7 +126,6 @@ func createTables() error {
 	}
 
 	// On crée un tableau pour stocker les commentaires
-	// C'est comme préparer des petites fiches où les gens peuvent répondre à chaque message principal
 	commentsTable := `
 	CREATE TABLE IF NOT EXISTS comments (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -151,7 +144,6 @@ func createTables() error {
 	}
 
 	// On crée un tableau pour stocker les likes/dislikes des posts
-	// C'est comme préparer un système où chaque personne peut mettre un pouce en haut ou en bas sur un message
 	postReactionsTable := `
 	CREATE TABLE IF NOT EXISTS post_reactions (
 		user_id INTEGER NOT NULL,
@@ -169,7 +161,6 @@ func createTables() error {
 	}
 
 	// On crée un tableau pour stocker les likes/dislikes des commentaires
-	// C'est comme le système précédent, mais pour les petites fiches de réponse
 	commentReactionsTable := `
 	CREATE TABLE IF NOT EXISTS comment_reactions (
 		user_id INTEGER NOT NULL,
@@ -187,7 +178,6 @@ func createTables() error {
 	}
 
 	// On ajoute quelques catégories par défaut si elles n'existent pas déjà
-	// C'est comme préparer les rayons principaux de notre bibliothèque avant d'ouvrir
 	defaultCategories := []string{"Général", "Technologie", "Sport", "Musique", "Cinéma", "Jeux vidéo", "Science", "Art", "Politique", "Autre"}
 	for _, category := range defaultCategories {
 		// Pour chaque catégorie de notre liste, on l'ajoute si elle n'existe pas déjà
@@ -203,7 +193,6 @@ func createTables() error {
 }
 
 // La fonction CloseDB ferme proprement la connexion avec la base de données
-// C'est comme fermer notre cahier quand on a fini de l'utiliser
 func CloseDB() error {
 	if DB != nil {
 		// Si la base de données est ouverte, on la ferme
@@ -212,15 +201,3 @@ func CloseDB() error {
 	// Si la base de données n'est pas ouverte, il n'y a rien à faire
 	return nil
 }
-
-// Dans la création de la table users:
-usersTable := `
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    role TEXT DEFAULT 'user',
-    oauth_id TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);`
