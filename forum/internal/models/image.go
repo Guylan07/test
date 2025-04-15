@@ -38,6 +38,44 @@ func InitImageTables() error {
 	return nil
 }
 
+// GetPostImage récupère l'image associée à un post
+func GetPostImage(postID int) (*Image, error) {
+	image := &Image{}
+	
+	err := database.DB.QueryRow(`
+		SELECT id, filename, user_id, post_id, created_at
+		FROM images
+		WHERE post_id = ?
+		LIMIT 1
+	`, postID).Scan(&image.ID, &image.Filename, &image.UserID, &image.PostID, &image.CreatedAt)
+	
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("image not found")
+		}
+		return nil, err
+	}
+	
+	return image, nil
+}
+
+// DeletePostImage supprime l'association entre une image et un post
+func DeletePostImage(postID int) error {
+	// Récupérer l'image
+	image, err := GetPostImage(postID)
+	if err != nil {
+		return err
+	}
+	
+	// Mettre à jour l'enregistrement pour supprimer l'association
+	_, err = database.DB.Exec("UPDATE images SET post_id = NULL WHERE id = ?", image.ID)
+	if err != nil {
+		return err
+	}
+	
+	return nil
+}
+
 // SaveImage enregistre une nouvelle image dans la base de données
 func SaveImage(filename string, userID int) (int, error) {
 	// Vérifier les entrées
