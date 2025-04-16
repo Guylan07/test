@@ -16,7 +16,6 @@ import (
 	"time"
 )
 
-// Configuration pour l'authentification OAuth
 type OAuthConfig struct {
 	ClientID     string
 	ClientSecret string
@@ -26,7 +25,6 @@ type OAuthConfig struct {
 	ProfileURL   string
 }
 
-// Structure pour recevoir le token OAuth
 type TokenResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
@@ -35,7 +33,6 @@ type TokenResponse struct {
 }
 
 var (
-	// Configuration pour Google OAuth
 	googleConfig = OAuthConfig{
 		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),

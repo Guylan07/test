@@ -1,0 +1,229 @@
+{{define "content"}}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <!-- Avatar placeholder -->
+            <div class="avatar-placeholder">
+                <span>{{slice .ProfileUser.Username 0 1}}</span>
+            </div>
+        </div>
+        <div class="profile-info">
+            <h2>{{.ProfileUser.Username}}</h2>
+            {{if .IsOwnProfile}}
+                <p class="profile-email">{{.ProfileUser.Email}}</p>
+            {{end}}
+            <p class="profile-meta">
+                <span>Membre depuis {{.ProfileUser.CreatedAt.Format "January 2, 2006"}}</span>
+                <span>Rôle: 
+                    {{if eq .ProfileUser.Role "admin"}}
+                        <span class="role-badge role-admin">Administrateur</span>
+                    {{else if eq .ProfileUser.Role "moderator"}}
+                        <span class="role-badge role-moderator">Modérateur</span>
+                    {{else}}
+                        <span class="role-badge role-user">Utilisateur</span>
+                    {{end}}
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <div class="profile-tabs">
+        <nav class="tabs-nav">
+            <a href="/profile?{{if not .IsOwnProfile}}user={{.ProfileUser.ID}}&{{end}}tab=activity" class="tab-link {{if eq .ActiveTab "activity"}}active{{end}}">Activité récente</a>
+            <a href="/profile?{{if not .IsOwnProfile}}user={{.ProfileUser.ID}}&{{end}}tab=posts" class="tab-link {{if eq .ActiveTab "posts"}}active{{end}}">Posts</a>
+            <a href="/profile?{{if not .IsOwnProfile}}user={{.ProfileUser.ID}}&{{end}}tab=comments" class="tab-link {{if eq .ActiveTab "comments"}}active{{end}}">Commentaires</a>
+            <a href="/profile?{{if not .IsOwnProfile}}user={{.ProfileUser.ID}}&{{end}}tab=likes" class="tab-link {{if eq .ActiveTab "likes"}}active{{end}}">Posts aimés</a>
+            <a href="/profile?{{if not .IsOwnProfile}}user={{.ProfileUser.ID}}&{{end}}tab=dislikes" class="tab-link {{if eq .ActiveTab "dislikes"}}active{{end}}">Posts non aimés</a>
+        </nav>
+    </div>
+
+    <div class="tab-content">
+        {{if eq .ActiveTab "activity"}}
+            <div class="activity-feed">
+                <h3>Activité récente</h3>
+                {{if .Activities}}
+                    <div class="timeline">
+                        {{range .Activities}}
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    {{if eq .Type "post"}}
+                                        <div class="activity-icon">
+                                            <i class="icon-post">📝</i>
+                                        </div>
+                                        <div class="activity-details">
+                                            <p>A créé un post: <a href="/post/{{.ID}}">{{.Content}}</a></p>
+                                            <span class="activity-time">{{.CreatedAt.Format "2 Jan 2006 à 15:04"}}</span>
+                                        </div>
+                                    {{else if eq .Type "comment"}}
+                                        <div class="activity-icon">
+                                            <i class="icon-comment">💬</i>
+                                        </div>
+                                        <div class="activity-details">
+                                            <p>A commenté sur <a href="/post/{{.PostID}}">{{.PostTitle}}</a>: "{{.Content}}"</p>
+                                            <span class="activity-time">{{.CreatedAt.Format "2 Jan 2006 à 15:04"}}</span>
+                                        </div>
+                                    {{else if eq .Type "post_reaction"}}
+                                        <div class="activity-icon">
+                                            {{if eq .Reaction "like"}}
+                                                <i class="icon-like">👍</i>
+                                            {{else}}
+                                                <i class="icon-dislike">👎</i>
+                                            {{end}}
+                                        </div>
+                                        <div class="activity-details">
+                                            <p>A {{if eq .Reaction "like"}}aimé{{else}}pas aimé{{end}} le post <a href="/post/{{.PostID}}">{{.PostTitle}}</a></p>
+                                            <span class="activity-time">{{.CreatedAt.Format "2 Jan 2006 à 15:04"}}</span>
+                                        </div>
+                                    {{else if eq .Type "comment_reaction"}}
+                                        <div class="activity-icon">
+                                            {{if eq .Reaction "like"}}
+                                                <i class="icon-like">👍</i>
+                                            {{else}}
+                                                <i class="icon-dislike">👎</i>
+                                            {{end}}
+                                        </div>
+                                        <div class="activity-details">
+                                            <p>A {{if eq .Reaction "like"}}aimé{{else}}pas aimé{{end}} un commentaire sur <a href="/post/{{.PostID}}">{{.PostTitle}}</a>: "{{.Content}}"</p>
+                                            <span class="activity-time">{{.CreatedAt.Format "2 Jan 2006 à 15:04"}}</span>
+                                        </div>
+                                    {{end}}
+                                </div>
+                            </div>
+                        {{end}}
+                    </div>
+                {{else}}
+                    <p class="no-data">Aucune activité récente.</p>
+                {{end}}
+            </div>
+        {{end}}
+
+        {{if eq .ActiveTab "posts"}}
+            <div class="user-posts">
+                <h3>Posts de {{.ProfileUser.Username}}</h3>
+                {{if .Posts}}
+                    <div class="posts-list">
+                        {{range .Posts}}
+                            <div class="post-card">
+                                <h4 class="post-title"><a href="/post/{{.ID}}">{{.Title}}</a></h4>
+                                
+                                <div class="post-meta">
+                                    <span>le {{.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
+                                </div>
+                                
+                                <div class="post-categories">
+                                    {{range .Categories}}
+                                        <a href="/?category={{.ID}}" class="category-tag">{{.Name}}</a>
+                                    {{end}}
+                                </div>
+                                
+                                <div class="post-stats">
+                                    <span>👍 {{.Likes}}</span>
+                                    <span>👎 {{.Dislikes}}</span>
+                                </div>
+                            </div>
+                        {{end}}
+                    </div>
+                {{else}}
+                    <p class="no-data">Aucun post trouvé.</p>
+                {{end}}
+            </div>
+        {{end}}
+
+        {{if eq .ActiveTab "comments"}}
+            <div class="user-comments">
+                <h3>Commentaires de {{.ProfileUser.Username}}</h3>
+                {{if .Comments}}
+                    <div class="comments-list">
+                        {{range .Comments}}
+                            <div class="comment">
+                                <div class="comment-meta">
+                                    <span>Sur <a href="/post/{{.PostID}}">ce post</a></span>
+                                    <span>le {{.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
+                                </div>
+                                
+                                <div class="comment-content">
+                                    {{.Content}}
+                                </div>
+                                
+                                <div class="comment-stats">
+                                    <span>👍 {{.Likes}}</span>
+                                    <span>👎 {{.Dislikes}}</span>
+                                </div>
+                            </div>
+                        {{end}}
+                    </div>
+                {{else}}
+                    <p class="no-data">Aucun commentaire trouvé.</p>
+                {{end}}
+            </div>
+        {{end}}
+
+        {{if eq .ActiveTab "likes"}}
+            <div class="user-liked-posts">
+                <h3>Posts aimés par {{.ProfileUser.Username}}</h3>
+                {{if .LikedPosts}}
+                    <div class="posts-list">
+                        {{range .LikedPosts}}
+                            <div class="post-card">
+                                <h4 class="post-title"><a href="/post/{{.ID}}">{{.Title}}</a></h4>
+                                
+                                <div class="post-meta">
+                                    <span>Posté par <a href="/profile?user={{.UserID}}">{{.Username}}</a></span>
+                                    <span>le {{.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
+                                </div>
+                                
+                                <div class="post-categories">
+                                    {{range .Categories}}
+                                        <a href="/?category={{.ID}}" class="category-tag">{{.Name}}</a>
+                                    {{end}}
+                                </div>
+                                
+                                <div class="post-stats">
+                                    <span>👍 {{.Likes}}</span>
+                                    <span>👎 {{.Dislikes}}</span>
+                                </div>
+                            </div>
+                        {{end}}
+                    </div>
+                {{else}}
+                    <p class="no-data">Aucun post aimé trouvé.</p>
+                {{end}}
+            </div>
+        {{end}}
+
+        {{if eq .ActiveTab "dislikes"}}
+            <div class="user-disliked-posts">
+                <h3>Posts non aimés par {{.ProfileUser.Username}}</h3>
+                {{if .DislikedPosts}}
+                    <div class="posts-list">
+                        {{range .DislikedPosts}}
+                            <div class="post-card">
+                                <h4 class="post-title"><a href="/post/{{.ID}}">{{.Title}}</a></h4>
+                                
+                                <div class="post-meta">
+                                    <span>Posté par <a href="/profile?user={{.UserID}}">{{.Username}}</a></span>
+                                    <span>le {{.CreatedAt.Format "02/01/2006 à 15:04"}}</span>
+                                </div>
+                                
+                                <div class="post-categories">
+                                    {{range .Categories}}
+                                        <a href="/?category={{.ID}}" class="category-tag">{{.Name}}</a>
+                                    {{end}}
+                                </div>
+                                
+                                <div class="post-stats">
+                                    <span>👍 {{.Likes}}</span>
+                                    <span>👎 {{.Dislikes}}</span>
+                                </div>
+                            </div>
+                        {{end}}
+                    </div>
+                {{else}}
+                    <p class="no-data">Aucun post non aimé trouvé.</p>
+                {{end}}
+            </div>
+        {{end}}
+    </div>
+</div>
+{{end}}

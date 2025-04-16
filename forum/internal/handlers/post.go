@@ -131,7 +131,6 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		// Limite la taille totale du formulaire à 25 MB (20 MB pour l'image + marge)
 		r.Body = http.MaxBytesReader(w, r.Body, 25*1024*1024)
 		err := r.ParseMultipartForm(25 * 1024 * 1024)
 		if err != nil {
@@ -156,7 +155,6 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Créer le post
 		postID, err := models.CreatePost(title, content, currentUser.ID, categoryIDsInt)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -164,12 +162,10 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Traiter l'upload d'image s'il y en a une
 		file, header, err := r.FormFile("image")
 		if err == nil {
 			defer file.Close()
 
-			// Valider le type de fichier
 			buff := make([]byte, 512)
 			_, err = file.Read(buff)
 			if err != nil {
@@ -178,24 +174,18 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			// Revenir au début du fichier après avoir lu le header
 			file.Seek(0, io.SeekStart)
 
-			// Vérifier le type MIME
 			filetype := http.DetectContentType(buff)
 			if !isAllowedImageType(filetype) {
 				http.Error(w, "The provided file format is not allowed. Please upload a JPEG, PNG or GIF image", http.StatusBadRequest)
 				return
 			}
 
-			// Créer un nom de fichier unique
 			filename := fmt.Sprintf("%d_%s", currentUser.ID, header.Filename)
-			// Nettoyer le nom de fichier
 			filename = sanitizeFilename(filename)
-			// Créer le chemin complet
 			filepath := filepath.Join(UploadDir, filename)
 
-			// Créer le fichier sur le serveur
 			dst, err := os.Create(filepath)
 			if err != nil {
 				http.Error(w, "Error saving the file", http.StatusInternalServerError)
@@ -204,14 +194,12 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			defer dst.Close()
 
-			// Copier le contenu dans le fichier créé
 			if _, err = io.Copy(dst, file); err != nil {
 				http.Error(w, "Error saving the file", http.StatusInternalServerError)
 				log.Printf("Error copying file: %v", err)
 				return
 			}
 
-			// Enregistrer l'image dans la base de données et l'associer au post
 			imageID, err := models.SaveImage(filename, currentUser.ID)
 			if err != nil {
 				http.Error(w, "Error saving image information", http.StatusInternalServerError)
@@ -219,7 +207,6 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			// Associer l'image au post
 			err = models.AssociateImageWithPost(imageID, postID)
 			if err != nil {
 				http.Error(w, "Error associating image with post", http.StatusInternalServerError)
@@ -272,7 +259,6 @@ func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Récupérer l'image associée au post, si elle existe
 	postImage, err := models.GetPostImage(postID)
 	if err != nil && err.Error() != "image not found" {
 		log.Printf("Error fetching post image: %v", err)
@@ -335,7 +321,6 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Récupérer l'image associée au post, si elle existe
 	postImage, err := models.GetPostImage(postID)
 	if err != nil && err.Error() != "image not found" {
 		log.Printf("Error fetching post image: %v", err)
@@ -378,7 +363,6 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		// Limite la taille totale du formulaire à 25 MB (20 MB pour l'image + marge)
 		r.Body = http.MaxBytesReader(w, r.Body, 25*1024*1024)
 		err := r.ParseMultipartForm(25 * 1024 * 1024)
 		if err != nil {
@@ -404,7 +388,6 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Mettre à jour le post
 		err = models.UpdatePost(postID, currentUser.ID, title, content, categoryIDsInt)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -412,20 +395,16 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Traiter l'image
 		if removeImage && postImage != nil {
-			// Supprimer l'image actuelle
 			err = models.DeletePostImage(postID)
 			if err != nil {
 				log.Printf("Error removing post image: %v", err)
 			}
 		} else {
-			// Vérifier s'il y a une nouvelle image
 			file, header, err := r.FormFile("image")
 			if err == nil {
 				defer file.Close()
 
-				// Valider le type de fichier
 				buff := make([]byte, 512)
 				_, err = file.Read(buff)
 				if err != nil {
@@ -434,24 +413,18 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				// Revenir au début du fichier après avoir lu le header
 				file.Seek(0, io.SeekStart)
 
-				// Vérifier le type MIME
 				filetype := http.DetectContentType(buff)
 				if !isAllowedImageType(filetype) {
 					http.Error(w, "The provided file format is not allowed. Please upload a JPEG, PNG or GIF image", http.StatusBadRequest)
 					return
 				}
 
-				// Créer un nom de fichier unique
 				filename := fmt.Sprintf("%d_%s", currentUser.ID, header.Filename)
-				// Nettoyer le nom de fichier
 				filename = sanitizeFilename(filename)
-				// Créer le chemin complet
 				filepath := filepath.Join(UploadDir, filename)
 
-				// Créer le fichier sur le serveur
 				dst, err := os.Create(filepath)
 				if err != nil {
 					http.Error(w, "Error saving the file", http.StatusInternalServerError)
@@ -460,14 +433,12 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				defer dst.Close()
 
-				// Copier le contenu dans le fichier créé
 				if _, err = io.Copy(dst, file); err != nil {
 					http.Error(w, "Error saving the file", http.StatusInternalServerError)
 					log.Printf("Error copying file: %v", err)
 					return
 				}
 
-				// Si une image existe déjà pour ce post, la supprimer
 				if postImage != nil {
 					err = models.DeletePostImage(postID)
 					if err != nil {
@@ -475,7 +446,6 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				// Enregistrer la nouvelle image et l'associer au post
 				imageID, err := models.SaveImage(filename, currentUser.ID)
 				if err != nil {
 					http.Error(w, "Error saving image information", http.StatusInternalServerError)
@@ -564,27 +534,4 @@ func ReactToPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/post/"+postIDStr, http.StatusSeeOther)
-}
-
-// Fonctions utilitaires
-func isAllowedImageType(filetype string) bool {
-	allowedTypes := map[string]bool{
-		"image/jpeg": true,
-		"image/jpg":  true,
-		"image/png":  true,
-		"image/gif":  true,
-	}
-	return allowedTypes[filetype]
-}
-
-func sanitizeFilename(filename string) string {
-	// Remplacer les caractères non alphanumériques par des tirets
-	filename = strings.ReplaceAll(filename, " ", "-")
-	filename = strings.Map(func(r rune) rune {
-		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '.' || r == '_' {
-			return r
-		}
-		return -1
-	}, filename)
-	return filename
 }
