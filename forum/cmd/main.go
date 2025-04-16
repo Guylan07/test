@@ -109,6 +109,8 @@ func main() {
 	mux.HandleFunc("/post/edit/", handlers.EditPostHandler)
 	mux.HandleFunc("/post/delete/", handlers.DeletePostHandler)
 	mux.HandleFunc("/post/react", handlers.ReactToPostHandler)
+
+	mux.HandleFunc("/profile", handlers.ProfileHandler)
 	
 	// Routes pour les commentaires
 	mux.HandleFunc("/comment/create", handlers.CreateCommentHandler)
