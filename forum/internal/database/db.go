@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"golang.org/x/crypto/bcrypt"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -186,6 +187,31 @@ func createTables() error {
 			// Si on n'arrive pas à ajouter une catégorie, on signale l'erreur
 			return err
 		}
+	}
+	
+	// Vérifier si un administrateur existe déjà
+	var count int
+	err = DB.QueryRow("SELECT COUNT(*) FROM users WHERE role = 'admin'").Scan(&count)
+	if err != nil {
+		return err
+	}
+	
+	// Si aucun administrateur n'existe, en créer un par défaut
+	if count == 0 {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("Admin123"), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		
+		_, err = DB.Exec(`
+			INSERT INTO users (email, username, password, role, created_at) 
+			VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+			"admin@gmail.com", "Admin", string(hashedPassword), "admin")
+		if err != nil {
+			return err
+		}
+		
+		log.Println("Default administrator account created successfully")
 	}
 	
 	// Tout s'est bien passé, on ne signale aucune erreur

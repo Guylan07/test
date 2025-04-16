@@ -1,0 +1,208 @@
+/* Styles pour la page profil */
+.profile-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.profile-avatar {
+    margin-right: 20px;
+}
+
+.avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: bold;
+}
+
+.profile-info h2 {
+    margin: 0 0 10px 0;
+}
+
+.profile-email {
+    color: #666;
+    margin: 0 0 10px 0;
+}
+
+.profile-meta {
+    color: #777;
+    font-size: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.role-admin {
+    background-color: #f44336;
+    color: white;
+}
+
+.role-moderator {
+    background-color: #2196F3;
+    color: white;
+}
+
+.role-user {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.profile-tabs {
+    margin-bottom: 20px;
+}
+
+.tabs-nav {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tab-link {
+    padding: 10px 20px;
+    text-decoration: none;
+    color: #666;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+}
+
+.tab-link:hover {
+    color: #4CAF50;
+    background-color: #f9f9f9;
+    text-decoration: none;
+}
+
+.tab-link.active {
+    color: #4CAF50;
+    border-bottom: 2px solid #4CAF50;
+    font-weight: bold;
+}
+
+.tab-content {
+    padding: 10px 0;
+}
+
+.no-data {
+    text-align: center;
+    color: #777;
+    padding: 30px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+/* Styles pour la timeline d'activité */
+.timeline {
+    position: relative;
+    margin-left: 20px;
+    padding-left: 20px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 2px;
+    background-color: #ddd;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+    display: flex;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -28px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #4CAF50;
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px #ddd;
+    z-index: 1;
+}
+
+.timeline-content {
+    flex: 1;
+    display: flex;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+.activity-icon {
+    margin-right: 15px;
+    font-size: 24px;
+}
+
+.activity-details {
+    flex: 1;
+}
+
+.activity-details p {
+    margin: 0 0 5px 0;
+}
+
+.activity-time {
+    color: #777;
+    font-size: 12px;
+}
+
+/* Icônes d'activité */
+.icon-post, .icon-comment, .icon-like, .icon-dislike {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    text-align: center;
+    line-height: 36px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+}
+
+.icon-post {
+    background-color: #e3f2fd;
+    color: #1976D2;
+}
+
+.icon-comment {
+    background-color: #e8f5e9;
+    color: #4CAF50;
+}
+
+.icon-like {
+    background-color: #e8f5e9;
+    color: #4CAF50;
+}
+
+.icon-dislike {
+    background-color: #ffebee;
+    color: #f44336;
+}
